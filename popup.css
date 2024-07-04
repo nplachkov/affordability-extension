@@ -1,0 +1,77 @@
+body {
+  font-family: Arial, sans-serif;
+  width: 320px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+#calculator {
+  display: flex;
+  flex-direction: column;
+}
+
+h1 {
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.input-group {
+  margin-bottom: 10px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+input {
+  width: 100%;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+button {
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 10px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+#result {
+  margin-top: 20px;
+}
+
+#resultLabel {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+#copyButton {
+  background-color: #28a745;
+}
+
+#copyButton:hover {
+  background-color: #218838;
+}
+
+#clearAll {
+  background-color: #dc3545;
+}
+
+#clearAll:hover {
+  background-color: #c82333;
+}
+
+#copyStatus {
+  margin-top: 5px;
+  font-size: 12px;
+  color: green;
+}
