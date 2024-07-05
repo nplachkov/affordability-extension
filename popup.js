@@ -1,10 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const calculateButton = document.getElementById('calculate');
-  const clearAllButton = document.getElementById('clearAll');
-  const resultLabel = document.getElementById('resultLabel');
-  const copyButton = document.getElementById('copyButton');
-  const copyStatus = document.getElementById('copyStatus');
-
+document.addEventListener('DOMContentLoaded', function () {
   const fields = [
     'annualSalary',
     'weeklyHours',
@@ -15,97 +9,54 @@ document.addEventListener('DOMContentLoaded', () => {
     'nmwThresholdPercent'
   ];
 
-  function loadValues() {
-    fields.forEach(field => {
-      const element = document.getElementById(field);
-      if (element) {
-        const value = localStorage.getItem(field);
-        element.value = value ? value : '';
-      }
-    });
-  }
-
-  function saveValues() {
-    fields.forEach(field => {
-      const element = document.getElementById(field);
-      if (element) {
-        localStorage.setItem(field, element.value);
-      }
-    });
-  }
-
-  function clearValues() {
-    fields.forEach(field => {
-      const element = document.getElementById(field);
-      if (element) {
-        element.value = '';
-        localStorage.removeItem(field);
-      }
-    });
-    resultLabel.textContent = '';
-    copyButton.style.display = 'none';
-    copyStatus.textContent = '';
-    document.querySelectorAll('.input-group').forEach(group => {
-      group.style.backgroundColor = ''; // Reset the background color
-    });
-  }
-
-  function highlightInvalidField(field) {
+  // Function to get field value and validate input
+  function getFieldValue(field) {
     const element = document.getElementById(field);
-    if (element) {
-      element.style.backgroundColor = 'red';
+    const value = element.value.trim(); // Trim to remove leading/trailing whitespace
+
+    // Check if the value is a valid number (including decimals)
+    const isValid = /^\d*\.?\d*$/.test(value);
+
+    if (isValid || value === '') {
+      element.classList.remove('error');
+      return parseFloat(value) || 0; // Return parsed float or 0 if empty
+    } else {
+      element.classList.add('error');
+      return 0; // Return 0 for invalid inputs
     }
   }
 
-  function removeHighlight(field) {
-    const element = document.getElementById(field);
-    if (element) {
-      element.style.backgroundColor = '';
-    }
-  }
+  // Calculate button click event
+  document.getElementById('calculate').addEventListener('click', function () {
+    // Get input values
+    const annualSalary = getFieldValue('annualSalary');
+    const weeklyHours = getFieldValue('weeklyHours');
+    const weeksWorked = getFieldValue('weeksWorked');
+    const otherGrossDeductions = getFieldValue('otherGrossDeductions');
+    const deductionsThroughRG = getFieldValue('deductionsThroughRG');
+    const nmwRate = getFieldValue('nmwRate');
+    const nmwThresholdPercent = getFieldValue('nmwThresholdPercent') / 100;
 
-  function calculateAffordability() {
-    let isValid = true;
-    const values = fields.map(field => {
-      const element = document.getElementById(field);
-      const value = element ? element.value : '';
-      if (value === '') {
-        return 0;
-      } else if (!/^\d*\.?\d*$/.test(value)) { // Allow numbers with optional decimal point
-        highlightInvalidField(field);
-        isValid = false;
-        return null;
-      } else {
-        removeHighlight(field);
-        return parseFloat(value);
-      }
-    });
+    // Calculate adjusted NMW rate
+    const adjustedNMW = nmwRate + (nmwRate * nmwThresholdPercent);
 
-    if (!isValid) {
-      resultLabel.textContent = 'Please correct the highlighted fields. Only numbers are allowed.';
-      copyButton.style.display = 'none';
-      return;
-    }
+    // Calculate minimum salary
+    const minimumSalary = adjustedNMW * weeklyHours * weeksWorked;
 
-    const [
-      salary,
-      hoursWorked,
-      weeksWorked,
-      otherGrossDeductions,
-      deductionsRG,
-      nmwRate,
-      nmwThresholdPercent
-    ] = values;
+    // Calculate affordability
+    const affordability = annualSalary - minimumSalary - otherGrossDeductions - deductionsThroughRG;
 
-    const newNMWRate = nmwRate + (nmwRate * (nmwThresholdPercent / 100));
-    const minimumPayment = newNMWRate * weeksWorked * hoursWorked;
-    const affordability = salary - minimumPayment - otherGrossDeductions - deductionsRG;
-
+    // Display affordability result
+    const resultLabel = document.getElementById('resultLabel');
     resultLabel.textContent = `Affordability: £${affordability.toFixed(2)}`;
-    copyButton.style.display = 'inline';
-  }
 
-  function copyToClipboard() {
+    // Show copy button
+    const copyButton = document.getElementById('copyButton');
+    copyButton.style.display = 'inline-block';
+  });
+
+  // Copy button click event
+  document.getElementById('copyButton').addEventListener('click', function () {
     const resultLabel = document.getElementById('resultLabel');
     const resultText = resultLabel.textContent.trim();
 
@@ -126,15 +77,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Show copy status
     const copyStatus = document.getElementById('copyStatus');
     copyStatus.textContent = 'Copied!';
-  }
-
-  loadValues();
-
-  calculateButton.addEventListener('click', () => {
-    calculateAffordability();
-    saveValues();
   });
 
-  clearAllButton.addEventListener('click', clearValues);
-  copyButton.addEventListener('click', copyToClipboard);
+  // Clear All button click event
+  const clearAllButton = document.getElementById('clearAll');
+  clearAllButton.addEventListener('click', function () {
+    fields.forEach(field => {
+      const element = document.getElementById(field);
+      element.value = '';
+      element.classList.remove('error'); // Remove error class
+    });
+
+    // Reset result and hide copy button
+    const resultLabel = document.getElementById('resultLabel');
+    resultLabel.textContent = '';
+    const copyButton = document.getElementById('copyButton');
+    copyButton.style.display = 'none';
+    const copyStatus = document.getElementById('copyStatus');
+    copyStatus.textContent = '';
+  });
 });
