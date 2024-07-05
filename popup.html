@@ -2,45 +2,46 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>National Minimum Wage Calculator</title>
-  <link rel="stylesheet" type="text/css" href="popup.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Affordability Calculator</title>
+  <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <div id="calculator">
-    <h1>National Minimum Wage Calculator</h1>
+    <img src="images/refresh.png" id="clearAll" alt="Clear All" title="Clear All">
+    <h1>Affordability Calculator</h1>
     <div class="input-group">
-      <label for="annualSalary">Annual Salary:</label>
+      <label for="annualSalary">Annual Salary</label>
       <input type="text" id="annualSalary">
     </div>
     <div class="input-group">
-      <label for="otherGrossDeductions">Other Gross Deductions:</label>
-      <input type="text" id="otherGrossDeductions">
-    </div>
-    <div class="input-group">
-      <label for="deductionsRG">Deductions through RG:</label>
-      <input type="text" id="deductionsRG">
-    </div>
-    <div class="input-group">
-      <label for="weeklyHours">Weekly Hours:</label>
+      <label for="weeklyHours">Weekly Hours</label>
       <input type="text" id="weeklyHours">
     </div>
     <div class="input-group">
-      <label for="weeksWorked">Weeks Worked:</label>
+      <label for="weeksWorked">Weeks Worked</label>
       <input type="text" id="weeksWorked">
     </div>
     <div class="input-group">
-      <label for="nmwRate">NMW Rate:</label>
+      <label for="otherGrossDeductions">Other Gross Deductions</label>
+      <input type="text" id="otherGrossDeductions">
+    </div>
+    <div class="input-group">
+      <label for="deductionsThroughRG">Deductions through RG</label>
+      <input type="text" id="deductionsThroughRG">
+    </div>
+    <div class="input-group">
+      <label for="nmwRate">NMW Rate</label>
       <input type="text" id="nmwRate">
     </div>
     <div class="input-group">
-      <label for="nmwThreshold">NMW Threshold %:</label>
-      <input type="text" id="nmwThreshold">
+      <label for="nmwThresholdPercent">NMW Threshold %</label>
+      <input type="text" id="nmwThresholdPercent">
     </div>
-    <button id="calculate">Calculate</button>
-    <button id="clearAll">Clear All</button>
+    <button id="calculate" class="styled-button">Calculate</button>
     <div id="result">
       <span id="resultLabel"></span>
-      <button id="copyButton" style="display: none;">Copy</button>
+      <button id="copyButton" class="styled-button" style="display: none;">Copy</button>
       <span id="copyStatus"></span>
     </div>
   </div>

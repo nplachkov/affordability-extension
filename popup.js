@@ -1,62 +1,140 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const fields = ['annualSalary', 'otherGrossDeductions', 'deductionsRG', 'weeklyHours', 'weeksWorked', 'nmwRate', 'nmwThreshold'];
+  const calculateButton = document.getElementById('calculate');
+  const clearAllButton = document.getElementById('clearAll');
+  const resultLabel = document.getElementById('resultLabel');
+  const copyButton = document.getElementById('copyButton');
+  const copyStatus = document.getElementById('copyStatus');
 
-  // Restore saved inputs
-  chrome.storage.sync.get(fields, (data) => {
+  const fields = [
+    'annualSalary',
+    'weeklyHours',
+    'weeksWorked',
+    'otherGrossDeductions',
+    'deductionsThroughRG',
+    'nmwRate',
+    'nmwThresholdPercent'
+  ];
+
+  function loadValues() {
     fields.forEach(field => {
-      document.getElementById(field).value = data[field] || '';
+      const element = document.getElementById(field);
+      if (element) {
+        const value = localStorage.getItem(field);
+        element.value = value ? value : '';
+      }
     });
-  });
+  }
 
-  // Save inputs on change
-  fields.forEach(field => {
-    document.getElementById(field).addEventListener('input', () => {
-      let inputData = {};
-      inputData[field] = document.getElementById(field).value;
-      chrome.storage.sync.set(inputData);
+  function saveValues() {
+    fields.forEach(field => {
+      const element = document.getElementById(field);
+      if (element) {
+        localStorage.setItem(field, element.value);
+      }
     });
-  });
+  }
 
-  document.getElementById('calculate').addEventListener('click', function() {
-    try {
-      let salary = parseFloat(document.getElementById('annualSalary').value);
-      let otherGrossDeductions = parseFloat(document.getElementById('otherGrossDeductions').value);
-      let deductionsRG = parseFloat(document.getElementById('deductionsRG').value);
-      let hoursWorked = parseFloat(document.getElementById('weeklyHours').value);
-      let weeksWorked = parseFloat(document.getElementById('weeksWorked').value);
-      let nmwRate = parseFloat(document.getElementById('nmwRate').value);
-      let nmwThreshold = parseFloat(document.getElementById('nmwThreshold').value) / 100;
+  function clearValues() {
+    fields.forEach(field => {
+      const element = document.getElementById(field);
+      if (element) {
+        element.value = '';
+        localStorage.removeItem(field);
+      }
+    });
+    resultLabel.textContent = '';
+    copyButton.style.display = 'none';
+    copyStatus.textContent = '';
+    document.querySelectorAll('.input-group').forEach(group => {
+      group.style.backgroundColor = ''; // Reset the background color
+    });
+  }
 
-      let newNMWRate = nmwRate + (nmwRate * nmwThreshold);
-      let minimumPayment = newNMWRate * weeksWorked * hoursWorked;
-      let affordability = salary - minimumPayment - otherGrossDeductions - deductionsRG;
-
-      document.getElementById('resultLabel').innerText = `Affordability: £${affordability.toFixed(2)}`;
-      document.getElementById('copyButton').style.display = 'inline';
-      document.getElementById('copyStatus').innerText = '';  // Clear previous copy status message
-
-      document.getElementById('copyButton').addEventListener('click', function() {
-        navigator.clipboard.writeText(`£${affordability.toFixed(2)}`).then(function() {
-          document.getElementById('copyStatus').innerText = 'Copied to clipboard!';
-        }, function() {
-          document.getElementById('copyStatus').innerText = 'Failed to copy.';
-        });
-      });
-
-    } catch (e) {
-      alert('Please enter valid numbers for all fields.');
+  function highlightInvalidField(field) {
+    const element = document.getElementById(field);
+    if (element) {
+      element.style.backgroundColor = 'red';
     }
-  });
+  }
 
-  document.getElementById('clearAll').addEventListener('click', function() {
-    fields.forEach(field => {
-      document.getElementById(field).value = '';
+  function removeHighlight(field) {
+    const element = document.getElementById(field);
+    if (element) {
+      element.style.backgroundColor = '';
+    }
+  }
+
+  function calculateAffordability() {
+    let isValid = true;
+    const values = fields.map(field => {
+      const element = document.getElementById(field);
+      const value = element ? element.value : '';
+      if (value === '') {
+        return 0;
+      } else if (!/^\d*\.?\d*$/.test(value)) { // Allow numbers with optional decimal point
+        highlightInvalidField(field);
+        isValid = false;
+        return null;
+      } else {
+        removeHighlight(field);
+        return parseFloat(value);
+      }
     });
-    document.getElementById('resultLabel').innerText = '';
-    document.getElementById('copyButton').style.display = 'none';
-    document.getElementById('copyStatus').innerText = '';  // Clear copy status message
 
-    // Clear saved inputs
-    chrome.storage.sync.clear();
+    if (!isValid) {
+      resultLabel.textContent = 'Please correct the highlighted fields. Only numbers are allowed.';
+      copyButton.style.display = 'none';
+      return;
+    }
+
+    const [
+      salary,
+      hoursWorked,
+      weeksWorked,
+      otherGrossDeductions,
+      deductionsRG,
+      nmwRate,
+      nmwThresholdPercent
+    ] = values;
+
+    const newNMWRate = nmwRate + (nmwRate * (nmwThresholdPercent / 100));
+    const minimumPayment = newNMWRate * weeksWorked * hoursWorked;
+    const affordability = salary - minimumPayment - otherGrossDeductions - deductionsRG;
+
+    resultLabel.textContent = `Affordability: £${affordability.toFixed(2)}`;
+    copyButton.style.display = 'inline';
+  }
+
+  function copyToClipboard() {
+    const resultLabel = document.getElementById('resultLabel');
+    const resultText = resultLabel.textContent.trim();
+
+    // Extract numeric value from resultText
+    const regex = /[-]{0,1}[\d]*[.]{0,1}[\d]+/g;
+    const match = resultText.match(regex);
+    const amount = match ? match[0] : '';
+
+    const formattedText = `£${amount}`;
+
+    const tempInput = document.createElement('textarea');
+    tempInput.value = formattedText;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    document.execCommand('copy');
+    document.body.removeChild(tempInput);
+
+    // Show copy status
+    const copyStatus = document.getElementById('copyStatus');
+    copyStatus.textContent = 'Copied!';
+  }
+
+  loadValues();
+
+  calculateButton.addEventListener('click', () => {
+    calculateAffordability();
+    saveValues();
   });
+
+  clearAllButton.addEventListener('click', clearValues);
+  copyButton.addEventListener('click', copyToClipboard);
 });

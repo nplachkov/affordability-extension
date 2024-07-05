@@ -1,46 +1,66 @@
 body {
   font-family: Arial, sans-serif;
-  width: 320px;
-  padding: 20px;
+  width: 350px;
+  height: 600px; /* Increased height */
+  padding: 10px;
+  padding-bottom: 0px;
   box-sizing: border-box;
+  text-align: center;
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 
 #calculator {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  position: relative;
 }
 
 h1 {
-  font-size: 16px;
+  font-size: 20px; /* Smaller font size */
+  margin-top: 20px; /* Added margin to ensure separation */
   margin-bottom: 20px;
 }
 
 .input-group {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
   margin-bottom: 10px;
 }
 
-label {
-  display: block;
-  margin-bottom: 5px;
+.input-group label {
+  flex: 1;
+  text-align: left;
+  margin-right: 10px;
 }
 
-input {
-  width: 100%;
+.input-group input {
+  flex: 2;
   padding: 5px;
-  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
 
-button {
-  padding: 10px;
-  background-color: #007bff;
+.input-group input:focus {
+  border-color: #007BFF;
+  outline: none;
+}
+
+button.styled-button {
+  margin: 10px 0;
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #007BFF;
   color: white;
   border: none;
+  border-radius: 4px;
   cursor: pointer;
-  width: 100%;
-  margin-top: 10px;
+  transition: background-color 0.3s;
 }
 
-button:hover {
+button.styled-button:hover {
   background-color: #0056b3;
 }
 
@@ -49,29 +69,28 @@ button:hover {
 }
 
 #resultLabel {
+  font-weight: bold;
+  font-size: 18px; /* Increased font size */
   display: block;
-  margin-bottom: 10px;
-  font-size: 14px;
+  margin-bottom: 10px; /* Space between result and copy button */
 }
 
 #copyButton {
-  background-color: #28a745;
-}
-
-#copyButton:hover {
-  background-color: #218838;
-}
-
-#clearAll {
-  background-color: #dc3545;
-}
-
-#clearAll:hover {
-  background-color: #c82333;
+  display: block;
+  margin: 10px auto;
 }
 
 #copyStatus {
-  margin-top: 5px;
-  font-size: 12px;
+  margin-left: 10px;
   color: green;
+}
+
+#clearAll {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  margin-top: 20px; /* Added margin-top for separation */
 }
