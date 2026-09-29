@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Affordability Calculator</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --input-bg: #ffffff;
+      --input-addon-bg: #f1f5f9;
+      --input-addon-color: #475569;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --primary-border: #bfdbfe;
+      --success: #16a34a;
+      --success-light: #f0fdf4;
+      --success-border: #bbf7d0;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --danger-border: #fecaca;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #cbd5e1;
+      --border-focus: #2563eb;
+      --sub-bg: #f8fafc;
+      --radius-sm: 6px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0b0f19;
+      --card-bg: #151c2c;
+      --input-bg: #1e293b;
+      --input-addon-bg: #0f172a;
+      --input-addon-color: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #60a5fa;
+      --primary-light: rgba(59, 130, 246, 0.15);
+      --primary-border: #1d4ed8;
+      --success: #22c55e;
+      --success-light: rgba(34, 197, 94, 0.15);
+      --success-border: #15803d;
+      --danger: #ef4444;
+      --danger-light: rgba(239, 68, 68, 0.15);
+      --danger-border: #b91c1c;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border-color: #2b3648;
+      --border-focus: #3b82f6;
+      --sub-bg: #0f172a;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.35), 0 2px 4px -2px rgb(0 0 0 / 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      padding: 1.5rem 1rem;
+      min-height: 100vh;
+      transition: background-color 0.2s, color 0.2s;
+      position: relative;
+    }
+
+    .theme-toggle {
+      position: absolute;
+      top: 1rem;
+      right: 1.25rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--card-bg);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 0.4rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+      z-index: 99;
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--border-focus);
+      background: var(--sub-bg);
+    }
+
+    .theme-toggle svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .container {
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.65rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-radius: 9999px;
+      background: var(--primary-light);
+      color: var(--primary);
+      margin-bottom: 0.4rem;
+      border: 1px solid var(--primary-border);
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 0.25rem;
+    }
+
+    .layout-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (min-width: 880px) {
+      .layout-grid {
+        grid-template-columns: 1.25fr 0.95fr;
+        align-items: start;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow);
+      padding: 1.25rem 1.5rem;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 0.65rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-title-text {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+    }
+
+    .field-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .field-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .field-label span.hint {
+      font-weight: 400;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+
+    .input-wrapper {
+      display: flex;
+      align-items: stretch;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      background: var(--input-bg);
+      overflow: hidden;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .input-wrapper.required-missing {
+      border-color: var(--danger);
+      box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.15);
+    }
+
+    .addon {
+      background: var(--input-addon-bg);
+      color: var(--input-addon-color);
+      font-weight: 600;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      border-right: 1px solid var(--border-color);
+      user-select: none;
+      min-width: 42px;
+      justify-content: center;
+    }
+
+    .calc-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.95rem;
+      font-family: inherit;
+      color: var(--text-main);
+      background: transparent;
+      min-width: 0;
+    }
+
+    .calc-input::placeholder {
+      color: #94a3b8;
+    }
+
+    .paste-btn {
+      background: var(--input-bg);
+      border: none;
+      border-left: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 0 0.65rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .paste-btn:hover {
+      background: var(--input-addon-bg);
+      color: var(--primary);
+    }
+
+    .paste-btn svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    .paste-feedback {
+      position: absolute;
+      bottom: calc(100% + 4px);
+      right: 0;
+      background: #1e293b;
+      color: #fff;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+      z-index: 10;
+    }
+
+    .paste-feedback.show {
+      opacity: 1;
+    }
+
+    /* RG Deductions Section */
+    .rg-section {
+      margin-top: 0.5rem;
+      padding-top: 1rem;
+      border-top: 1px dashed var(--border-color);
+    }
+
+    .rg-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .rg-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .btn-add-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid var(--primary-border);
+      padding: 0.3rem 0.65rem;
+      font-size: 0.775rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-add-item:hover {
+      background: #dbeafe;
+    }
+
+    .rg-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .rg-item-card {
+      background: var(--sub-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      position: relative;
+    }
+
+    .rg-item-top {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr auto;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .rg-item-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding-top: 0.4rem;
+      border-top: 1px dotted var(--border-color);
+      font-size: 0.8rem;
+    }
+
+    .period-checkbox-wrapper {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .period-checkbox-wrapper input[type="checkbox"] {
+      cursor: pointer;
+      width: 14px;
+      height: 14px;
+    }
+
+    .period-input-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .period-input-wrapper {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      background: var(--input-bg);
+      overflow: hidden;
+      width: 85px;
+    }
+
+    .period-input-wrapper input {
+      width: 100%;
+      border: none;
+      outline: none;
+      padding: 0.2rem 0.4rem;
+      font-size: 0.8rem;
+      text-align: right;
+      color: var(--text-main);
+      background: transparent;
+    }
+
+    .period-addon {
+      background: var(--input-addon-bg);
+      font-size: 0.75rem;
+      color: var(--input-addon-color);
+      padding: 0.2rem 0.35rem;
+      border-left: 1px solid var(--border-color);
+    }
+
+    .period-adjusted-note {
+      font-size: 0.75rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .btn-remove-rg {
+      background: transparent;
+      border: 1px solid transparent;
+      color: #94a3b8;
+      border-radius: var(--radius-sm);
+      padding: 0.35rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .btn-remove-rg:hover {
+      color: var(--danger);
+      background: var(--danger-light);
+      border-color: var(--danger-border);
+    }
+
+    .rg-summary-bar {
+      margin-top: 0.5rem;
+      padding: 0.45rem 0.75rem;
+      background: var(--input-addon-bg);
+      border-radius: var(--radius-sm);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* Right column: Results & Email */
+    .results-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .highlight-card {
+      border-radius: var(--radius-md);
+      padding: 1.15rem;
+      background: var(--primary-light);
+      border: 1px solid var(--primary-border);
+      text-align: center;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .highlight-card.positive {
+      background: var(--success-light);
+      border-color: var(--success-border);
+    }
+
+    .highlight-card.negative {
+      background: var(--danger-light);
+      border-color: var(--danger-border);
+    }
+
+    .highlight-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .highlight-value {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: var(--text-main);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .highlight-sub {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-top: 0.2rem;
+      color: var(--text-muted);
+    }
+
+    .positive .highlight-value {
+      color: var(--success);
+    }
+
+    .negative .highlight-value {
+      color: var(--danger);
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.65rem;
+      margin-top: 1rem;
+    }
+
+    .metric-box {
+      background: var(--sub-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.65rem 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .metric-label {
+      font-size: 0.825rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .metric-value {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      border: 1px solid transparent;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-outline {
+      background: var(--card-bg);
+      color: var(--text-main);
+      border-color: var(--border-color);
+    }
+
+    .btn-outline:hover {
+      background: var(--sub-bg);
+      border-color: var(--text-muted);
+    }
+
+    .email-container {
+      background: var(--sub-bg);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.85rem;
+    }
+
+    .email-preview {
+      width: 100%;
+      min-height: 110px;
+      padding: 0.85rem 1rem;
+      font-family: var(--font-sans);
+      font-size: 0.875rem;
+      line-height: 1.65;
+      background: var(--input-bg);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      word-break: break-word;
+      user-select: all;
+    }
+
+    .email-line {
+      margin-bottom: 0.55rem;
+    }
+
+    .email-line:last-child {
+      margin-bottom: 0;
+    }
+
+    .email-line strong {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .email-actions {
+      display: flex;
+      margin-top: 0.75rem;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #0f172a;
+      color: #fff;
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      font-weight: 500;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      z-index: 100;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    footer {
+      margin-top: 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+
+<button type="button" class="theme-toggle" id="themeToggle" title="Toggle dark/light mode" aria-label="Toggle theme">
+  <span id="themeIcon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+  </span>
+  <span id="themeText">Dark</span>
+</button>
+
+<div class="container">
+  <header>
+    <div class="badge">Workplace Tool</div>
+    <h1>Affordability Calculator</h1>
+    <p class="subtitle">Evaluate salary affordability against NMW threshold and deduction limits</p>
+  </header>
+
+  <div class="layout-grid">
+    <!-- LEFT: INPUTS -->
+    <div class="card">
+      <div class="card-title">
+        <div class="card-title-text">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>
+          Inputs & Deductions
+        </div>
+      </div>
+
+      <div class="field-group">
+        <!-- Annual Salary -->
+        <div class="field-row">
+          <label class="field-label" for="annualSalary">
+            Annual Salary
+            <span class="hint">Gross yearly</span>
+          </label>
+          <div class="input-wrapper">
+            <span class="addon">£</span>
+            <input type="text" inputmode="decimal" id="annualSalary" class="calc-input main-input" placeholder="0.00">
+            <button type="button" class="paste-btn" tabindex="-1" data-target="annualSalary" title="Paste from clipboard">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+              <div class="paste-feedback">Pasted!</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- NMW Rate -->
+        <div class="field-row">
+          <label class="field-label" for="nmwRate">
+            NMW Rate
+            <span class="hint">Hourly rate</span>
+          </label>
+          <div class="input-wrapper">
+            <span class="addon">£</span>
+            <input type="text" inputmode="decimal" id="nmwRate" class="calc-input main-input" placeholder="12.71" value="12.71">
+            <button type="button" class="paste-btn" tabindex="-1" data-target="nmwRate" title="Paste from clipboard">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+              <div class="paste-feedback">Pasted!</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Additional Threshold % -->
+        <div class="field-row">
+          <label class="field-label" for="thresholdPct">
+            Additional Threshold %
+            <span class="hint">e.g. 20%</span>
+          </label>
+          <div class="input-wrapper">
+            <span class="addon">%</span>
+            <input type="text" inputmode="decimal" id="thresholdPct" class="calc-input main-input" placeholder="20">
+            <button type="button" class="paste-btn" tabindex="-1" data-target="thresholdPct" title="Paste from clipboard">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+              <div class="paste-feedback">Pasted!</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Weekly Hours -->
+        <div class="field-row">
+          <label class="field-label" for="weeklyHours">
+            <span>Weekly Hours <span style="color: var(--danger); font-weight: 700;">*</span></span>
+            <span class="hint">Required</span>
+          </label>
+          <div class="input-wrapper" id="weeklyHoursWrapper">
+            <span class="addon">Hrs</span>
+            <input type="text" inputmode="decimal" id="weeklyHours" class="calc-input main-input" placeholder="37.5" required>
+            <button type="button" class="paste-btn" tabindex="-1" data-target="weeklyHours" title="Paste from clipboard">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+              <div class="paste-feedback">Pasted!</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Weeks Worked -->
+        <div class="field-row">
+          <label class="field-label" for="weeksWorked">
+            <span>Weeks Worked <span style="color: var(--danger); font-weight: 700;">*</span></span>
+            <span class="hint">Default 52 &bull; Required</span>
+          </label>
+          <div class="input-wrapper" id="weeksWorkedWrapper">
+            <span class="addon">Wks</span>
+            <input type="text" inputmode="decimal" id="weeksWorked" class="calc-input main-input" placeholder="52" value="52" required>
+            <button type="button" class="paste-btn" tabindex="-1" data-target="weeksWorked" title="Paste from clipboard">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+              <div class="paste-feedback">Pasted!</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Other Gross Deductions -->
+        <div class="field-row">
+          <label class="field-label" for="otherDeductions">
+            Other Gross Deductions
+            <span class="hint">£ / year</span>
+          </label>
+          <div class="input-wrapper">
+            <span class="addon">£</span>
+            <input type="text" inputmode="decimal" id="otherDeductions" class="calc-input main-input" placeholder="0.00">
+            <button type="button" class="paste-btn" tabindex="-1" data-target="otherDeductions" title="Paste from clipboard">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+              <div class="paste-feedback">Pasted!</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- DEDUCTIONS THROUGH RG (Individual Items) -->
+        <div class="rg-section">
+          <div class="rg-header">
+            <div class="rg-title">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Deductions through RG
+            </div>
+            <button type="button" class="btn-add-item" id="btnAddRGItem" tabindex="-1">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Item
+            </button>
+          </div>
+
+          <div class="rg-list" id="rgList">
+            <!-- Dynamic RG Items will be rendered here -->
+          </div>
+
+          <div class="rg-summary-bar">
+            <span>Total RG Deductions (Adjusted Annual):</span>
+            <span id="rgTotalLabel">£0.00</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RIGHT: LIVE RESULTS & EMAIL GENERATOR -->
+    <div class="results-stack">
+      <!-- RESULTS CARD -->
+      <div class="card">
+        <div class="card-title">
+          <div class="card-title-text">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+            Live Calculation Results
+          </div>
+        </div>
+
+        <div class="highlight-card" id="highlightCard">
+          <div class="highlight-label">Annual Affordability</div>
+          <div class="highlight-value" id="displayAffordabilityAnnual">£0.00</div>
+          <div class="highlight-sub" id="displayAffordabilityMonthly">£0.00 / month</div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-box">
+            <span class="metric-label">Adjusted NMW Threshold:</span>
+            <span class="metric-value" id="displayAdjustedNMW">£0.00 / hr</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Minimum Salary Required:</span>
+            <span class="metric-value" id="displayMinSalary">£0.00</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Other Gross Deductions:</span>
+            <span class="metric-value" id="displayOtherDeductions">£0.00</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Total RG Deductions (Annual):</span>
+            <span class="metric-value" id="displayRGDeductions">£0.00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMAIL BREAKDOWN CARD -->
+      <div class="card">
+        <div class="card-title">
+          <div class="card-title-text">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Email Breakdown
+          </div>
+        </div>
+
+        <div class="email-container">
+          <div id="emailPreview" class="email-preview"></div>
+          <div class="email-actions">
+            <button type="button" class="btn btn-primary" id="btnCopyEmail">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy Email Breakdown to Clipboard
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Standalone Workplace Affordability Calculator
+  </footer>
+</div>
+
+<div class="toast" id="toast">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toastMessage">Copied to clipboard</span>
+</div>
+
+<script>
+  // State for RG items: { id, name, amount, hasPeriod, periodMonths }
+  let rgItems = [];
+  let nextRgId = 1;
+
+  // Format currency with exactly 2 decimal places and commas
+  function formatMoney(amount) {
+    if (isNaN(amount) || !isFinite(amount)) return '0.00';
+    return Number(amount).toLocaleString('en-GB', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  }
+
+  // Parse input strings to floating point numbers
+  function parseVal(id, defaultValue = 0) {
+    const el = document.getElementById(id);
+    if (!el) return defaultValue;
+    const raw = el.value.replace(/[^0-9.-]+/g, '');
+    if (raw === '' || isNaN(raw)) return defaultValue;
+    return parseFloat(raw);
+  }
+
+  // Toast feedback
+  let toastTimer = null;
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    const msgEl = document.getElementById('toastMessage');
+    msgEl.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2200);
+  }
+
+  // Bind paste button action
+  function bindPasteBtn(btn, targetInput) {
+    btn.addEventListener('click', async () => {
+      const feedback = btn.querySelector('.paste-feedback');
+      try {
+        if (!navigator.clipboard || !navigator.clipboard.readText) {
+          throw new Error('Clipboard API unavailable');
+        }
+        const text = await navigator.clipboard.readText();
+        if (text !== undefined && text !== null) {
+          const cleaned = text.trim().replace(/[^0-9.-]+/g, '');
+          targetInput.value = cleaned || text.trim();
+          targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+          if (feedback) {
+            feedback.classList.add('show');
+            setTimeout(() => feedback.classList.remove('show'), 1400);
+          }
+        }
+      } catch (err) {
+        const pasted = prompt('Please paste your value here:');
+        if (pasted !== null) {
+          const cleaned = pasted.trim().replace(/[^0-9.-]+/g, '');
+          targetInput.value = cleaned || pasted.trim();
+          targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      }
+    });
+  }
+
+  // Auto-select text on focus so user is ready to type immediately when TABbing
+  function attachAutoSelect(inputEl) {
+    inputEl.addEventListener('focus', () => {
+      inputEl.select();
+    });
+  }
+
+  // Render RG Deductions List
+  function renderRGItems() {
+    const container = document.getElementById('rgList');
+    container.innerHTML = '';
+
+    if (rgItems.length === 0) {
+      container.innerHTML = `
+        <div style="padding: 0.85rem; text-align: center; color: var(--text-muted); font-size: 0.825rem; border: 1px dashed var(--border-color); border-radius: var(--radius-md); background: var(--sub-bg);">
+          No RG deductions added. Click <strong>+ Add Item</strong> to add a benefit.
+        </div>
+      `;
+      updateAdjustedNotes();
+      return;
+    }
+
+    rgItems.forEach((item, index) => {
+      const card = document.createElement('div');
+      card.className = 'rg-item-card';
+      card.dataset.id = item.id;
+
+      card.innerHTML = `
+        <div class="rg-item-top">
+          <input type="text" class="calc-input rg-name-input" placeholder="e.g. Cycle to Work" value="${item.name.replace(/"/g, '&quot;')}" style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.45rem 0.65rem; background: var(--input-bg); color: var(--text-main);">
+          <div class="input-wrapper">
+            <span class="addon" style="padding: 0.45rem 0.55rem; min-width: 32px;">£</span>
+            <input type="text" inputmode="decimal" class="calc-input rg-amount-input" placeholder="0.00" value="${item.amount > 0 ? item.amount : ''}">
+            <button type="button" class="paste-btn rg-paste-btn" tabindex="-1" title="Paste amount">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+              <div class="paste-feedback">Pasted!</div>
+            </button>
+          </div>
+          <button type="button" class="btn-remove-rg" tabindex="-1" title="Remove item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+        <div class="rg-item-bottom">
+          <label class="period-checkbox-wrapper">
+            <input type="checkbox" class="rg-period-checkbox" ${item.hasPeriod ? 'checked' : ''}>
+            <span>Custom period (months)</span>
+          </label>
+          <div class="period-input-group" style="${item.hasPeriod ? '' : 'display: none;'}">
+            <div class="period-input-wrapper">
+              <input type="text" inputmode="numeric" class="rg-period-months" value="${item.periodMonths || 12}">
+              <span class="period-addon">mo</span>
+            </div>
+            <span class="period-adjusted-note" id="note_${item.id}"></span>
+          </div>
+        </div>
+      `;
+
+      // Event listeners for this card
+      const nameInput = card.querySelector('.rg-name-input');
+      const amountInput = card.querySelector('.rg-amount-input');
+      const pasteBtn = card.querySelector('.rg-paste-btn');
+      const removeBtn = card.querySelector('.btn-remove-rg');
+      const checkbox = card.querySelector('.rg-period-checkbox');
+      const periodGroup = card.querySelector('.period-input-group');
+      const monthsInput = card.querySelector('.rg-period-months');
+
+      attachAutoSelect(nameInput);
+      attachAutoSelect(amountInput);
+      attachAutoSelect(monthsInput);
+
+      bindPasteBtn(pasteBtn, amountInput);
+
+      nameInput.addEventListener('input', (e) => {
+        item.name = e.target.value;
+        onValuesUpdated();
+      });
+
+      amountInput.addEventListener('input', (e) => {
+        const raw = e.target.value.replace(/[^0-9.-]+/g, '');
+        item.amount = raw === '' || isNaN(raw) ? 0 : parseFloat(raw);
+        onValuesUpdated();
+      });
+
+      checkbox.addEventListener('change', (e) => {
+        item.hasPeriod = e.target.checked;
+        periodGroup.style.display = item.hasPeriod ? 'inline-flex' : 'none';
+        if (item.hasPeriod && (!item.periodMonths || item.periodMonths <= 0)) {
+          item.periodMonths = 12;
+          monthsInput.value = '12';
+        }
+        onValuesUpdated();
+      });
+
+      monthsInput.addEventListener('input', (e) => {
+        const raw = e.target.value.replace(/[^0-9.]+/g, '');
+        item.periodMonths = raw === '' || isNaN(raw) ? 12 : parseFloat(raw);
+        onValuesUpdated();
+      });
+
+      removeBtn.addEventListener('click', () => {
+        rgItems = rgItems.filter(i => i.id !== item.id);
+        renderRGItems();
+        onValuesUpdated();
+      });
+
+      container.appendChild(card);
+    });
+
+    updateAdjustedNotes();
+  }
+
+  // Update note displayed for period-adjusted items (e.g. "Adjusted: £666.67/yr")
+  function updateAdjustedNotes() {
+    rgItems.forEach(item => {
+      const noteEl = document.getElementById(`note_${item.id}`);
+      if (!noteEl) return;
+      if (item.hasPeriod && item.periodMonths > 0 && item.amount > 0) {
+        // Full decimal calculation: (amount / periodMonths) * 12
+        const annualAdjusted = (item.amount / item.periodMonths) * 12;
+        noteEl.textContent = `Adjusted: £${formatMoney(annualAdjusted)}/yr`;
+      } else {
+        noteEl.textContent = '';
+      }
+    });
+  }
+
+  // Core Calculation Function: Uses full floating-point precision throughout
+  function calculate() {
+    const annualSalary = parseVal('annualSalary', 0);
+    const nmwRate = parseVal('nmwRate', 0);
+    const thresholdPct = parseVal('thresholdPct', 0);
+    const weeklyHours = parseVal('weeklyHours', 0);
+    const weeksWorked = parseVal('weeksWorked', 52);
+    const otherDeductions = parseVal('otherDeductions', 0);
+
+    // Adjusted NMW Threshold = NMW Rate * (1 + Additional Threshold %)
+    const adjustedNMW = nmwRate * (1 + (thresholdPct / 100));
+
+    // Minimum Salary = Adjusted NMW Threshold * Weekly Hours * Weeks Worked
+    const minSalary = adjustedNMW * weeklyHours * weeksWorked;
+
+    // RG Deductions: Full decimal points, adjusted for period if box ticked
+    let totalRGDeductions = 0;
+    rgItems.forEach(item => {
+      let itemAnnual = item.amount || 0;
+      if (item.hasPeriod && item.periodMonths && item.periodMonths > 0) {
+        // e.g. 1000 / 18 * 12 = 666.66666667
+        itemAnnual = (item.amount / item.periodMonths) * 12;
+      }
+      totalRGDeductions += itemAnnual;
+    });
+
+    // Affordability (Annual) = Annual Salary - Minimum Salary - Other Gross Deductions - Deductions through RG
+    const affordabilityAnnual = annualSalary - minSalary - otherDeductions - totalRGDeductions;
+
+    // Monthly Affordability = Affordability (Annual) / 12
+    const affordabilityMonthly = affordabilityAnnual / 12;
+
+    // Update UI elements (format final results with 2 decimal places)
+    document.getElementById('rgTotalLabel').textContent = `£${formatMoney(totalRGDeductions)}`;
+    document.getElementById('displayAdjustedNMW').textContent = `£${formatMoney(adjustedNMW)} / hr`;
+    document.getElementById('displayMinSalary').textContent = `£${formatMoney(minSalary)}`;
+    document.getElementById('displayOtherDeductions').textContent = `£${formatMoney(otherDeductions)}`;
+    document.getElementById('displayRGDeductions').textContent = `£${formatMoney(totalRGDeductions)}`;
+    document.getElementById('displayAffordabilityAnnual').textContent = `£${formatMoney(affordabilityAnnual)}`;
+    document.getElementById('displayAffordabilityMonthly').textContent = `£${formatMoney(affordabilityMonthly)} / month`;
+
+    const highlightCard = document.getElementById('highlightCard');
+    highlightCard.classList.remove('positive', 'negative');
+    if (affordabilityAnnual > 0) {
+      highlightCard.classList.add('positive');
+    } else if (affordabilityAnnual < 0) {
+      highlightCard.classList.add('negative');
+    }
+
+    // Required fields validation indicators
+    const hoursWrapper = document.getElementById('weeklyHoursWrapper');
+    const weeksWrapper = document.getElementById('weeksWorkedWrapper');
+    const hoursInput = document.getElementById('weeklyHours');
+    const weeksInput = document.getElementById('weeksWorked');
+
+    if (hoursWrapper && hoursInput) {
+      if (hoursInput.value.trim() === '' || parseVal('weeklyHours', 0) <= 0) {
+        hoursWrapper.classList.add('required-missing');
+      } else {
+        hoursWrapper.classList.remove('required-missing');
+      }
+    }
+
+    if (weeksWrapper && weeksInput) {
+      if (weeksInput.value.trim() === '' || parseVal('weeksWorked', 0) <= 0) {
+        weeksWrapper.classList.add('required-missing');
+      } else {
+        weeksWrapper.classList.remove('required-missing');
+      }
+    }
+
+    updateAdjustedNotes();
+
+    return {
+      annualSalary,
+      nmwRate,
+      thresholdPct,
+      weeklyHours,
+      weeksWorked,
+      otherDeductions,
+      totalRGDeductions,
+      adjustedNMW,
+      minSalary,
+      affordabilityAnnual,
+      affordabilityMonthly
+    };
+  }
+
+  // Email formatter with bold headers, benefit names, and omitting empty deductions
+  function formatEmailBreakdown(calcData) {
+    if (!calcData) calcData = calculate();
+
+    const nmwStr = formatMoney(calcData.nmwRate);
+    const thresholdStr = calcData.thresholdPct % 1 === 0 ? calcData.thresholdPct.toFixed(0) : calcData.thresholdPct.toString();
+    const adjNmwStr = formatMoney(calcData.adjustedNMW);
+    const hoursStr = calcData.weeklyHours % 1 === 0 ? calcData.weeklyHours.toFixed(0) : calcData.weeklyHours.toString();
+    const weeksStr = calcData.weeksWorked % 1 === 0 ? calcData.weeksWorked.toFixed(0) : calcData.weeksWorked.toString();
+    const minSalaryStr = formatMoney(calcData.minSalary);
+    const annualSalaryStr = formatMoney(calcData.annualSalary);
+    const otherDedStr = formatMoney(calcData.otherDeductions);
+    const affAnnualStr = formatMoney(calcData.affordabilityAnnual);
+    const affMonthlyStr = formatMoney(calcData.affordabilityMonthly);
+
+    const thresholdInputVal = (document.getElementById('thresholdPct')?.value || '').trim();
+    const hasThreshold = calcData.thresholdPct > 0 && thresholdInputVal !== '' && thresholdInputVal !== '0';
+
+    const line1Prefix = 'NMW Rate:';
+    const line1Body = hasThreshold
+      ? ` £${nmwStr} + ${thresholdStr}% = £${adjNmwStr}`
+      : ` £${nmwStr}`;
+
+    const line2Prefix = 'Minimum they should receive:';
+    const line2Body = ` £${adjNmwStr} * ${hoursStr} * ${weeksStr} = £${minSalaryStr}`;
+
+    // Line 3: Build subtraction terms - omit Other Deductions and RG Deductions if not populated / 0
+    let line3Terms = [`£${annualSalaryStr}`, `£${minSalaryStr}`];
+
+    // Other Gross Deductions (only if populated and > 0)
+    const otherDeductionsVal = (document.getElementById('otherDeductions')?.value || '').trim();
+    if (calcData.otherDeductions > 0 && otherDeductionsVal !== '' && otherDeductionsVal !== '0') {
+      line3Terms.push(`£${otherDedStr}`);
+    }
+
+    // RG Deductions (only if populated and > 0)
+    let rgParts = [];
+    rgItems.forEach(item => {
+      const itemAnnual = (item.hasPeriod && item.periodMonths > 0) ? (item.amount / item.periodMonths) * 12 : item.amount;
+      if (itemAnnual > 0) {
+        const amtStr = `£${formatMoney(itemAnnual)}`;
+        const name = (item.name || '').trim();
+        if (name) {
+          rgParts.push(`${amtStr} (${name})`);
+        } else {
+          rgParts.push(amtStr);
+        }
+      }
+    });
+
+    if (rgParts.length > 0 && calcData.totalRGDeductions > 0) {
+      rgParts.forEach(p => line3Terms.push(p));
+    }
+
+    const line3Prefix = 'Affordability:';
+    const line3Formula = line3Terms.join(' - ');
+    const line3Body = ` ${line3Formula} = £${affAnnualStr} (£${affMonthlyStr}/month)`;
+
+    const plain = `${line1Prefix}${line1Body}\n${line2Prefix}${line2Body}\n${line3Prefix}${line3Body}`;
+
+    const html = `<p style="margin:0 0 8px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.5; color: #1e293b;"><strong>${line1Prefix}</strong>${line1Body}</p>` +
+      `<p style="margin:0 0 8px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.5; color: #1e293b;"><strong>${line2Prefix}</strong>${line2Body}</p>` +
+      `<p style="margin:0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.5; color: #1e293b;"><strong>${line3Prefix}</strong>${line3Body}</p>`;
+
+    const uiHtml = `<div class="email-line"><strong>${line1Prefix}</strong>${line1Body}</div>` +
+      `<div class="email-line"><strong>${line2Prefix}</strong>${line2Body}</div>` +
+      `<div class="email-line"><strong>${line3Prefix}</strong>${line3Body}</div>`;
+
+    return { plain, html, uiHtml };
+  }
+
+  function updateEmailBreakdown(calcData) {
+    const { uiHtml } = formatEmailBreakdown(calcData);
+    const previewEl = document.getElementById('emailPreview');
+    if (previewEl) {
+      previewEl.innerHTML = uiHtml;
+    }
+  }
+
+  function onValuesUpdated() {
+    const calcData = calculate();
+    updateEmailBreakdown(calcData);
+  }
+
+  // Setup main inputs
+  document.querySelectorAll('.main-input').forEach(input => {
+    attachAutoSelect(input);
+    input.addEventListener('input', onValuesUpdated);
+    input.addEventListener('paste', () => {
+      setTimeout(onValuesUpdated, 10);
+    });
+  });
+
+  // Setup paste buttons on main inputs
+  document.querySelectorAll('.paste-btn[data-target]').forEach(btn => {
+    const targetId = btn.getAttribute('data-target');
+    const targetInput = document.getElementById(targetId);
+    if (targetInput) {
+      bindPasteBtn(btn, targetInput);
+    }
+  });
+
+  // Add Item Button
+  document.getElementById('btnAddRGItem').addEventListener('click', () => {
+    const newId = `rg_${nextRgId++}`;
+    rgItems.push({
+      id: newId,
+      name: '',
+      amount: 0,
+      hasPeriod: false,
+      periodMonths: 12
+    });
+    renderRGItems();
+    onValuesUpdated();
+    // Focus the new item's name input
+    const newCard = document.querySelector(`.rg-item-card[data-id="${newId}"] .rg-name-input`);
+    if (newCard) newCard.focus();
+  });
+
+  // Copy Email Breakdown Button (copies rich formatted HTML + plain text fallback)
+  document.getElementById('btnCopyEmail').addEventListener('click', async () => {
+    const hoursInput = document.getElementById('weeklyHours');
+    const weeksInput = document.getElementById('weeksWorked');
+
+    if (!hoursInput.value.trim() || parseVal('weeklyHours', 0) <= 0) {
+      showToast('Weekly Hours is required!');
+      hoursInput.focus();
+      return;
+    }
+    if (!weeksInput.value.trim() || parseVal('weeksWorked', 0) <= 0) {
+      showToast('Weeks Worked is required!');
+      weeksInput.focus();
+      return;
+    }
+
+    const calcData = calculate();
+    const { plain, html } = formatEmailBreakdown(calcData);
+
+    try {
+      if (navigator.clipboard && navigator.clipboard.write) {
+        const item = new ClipboardItem({
+          'text/html': new Blob([html], { type: 'text/html' }),
+          'text/plain': new Blob([plain], { type: 'text/plain' })
+        });
+        await navigator.clipboard.write([item]);
+      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(plain);
+      } else {
+        const previewEl = document.getElementById('emailPreview');
+        const range = document.createRange();
+        range.selectNodeContents(previewEl);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        document.execCommand('copy');
+        sel.removeAllRanges();
+      }
+      showToast('Email breakdown copied to clipboard!');
+    } catch (err) {
+      try {
+        const previewEl = document.getElementById('emailPreview');
+        const range = document.createRange();
+        range.selectNodeContents(previewEl);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        document.execCommand('copy');
+        sel.removeAllRanges();
+        showToast('Email breakdown copied to clipboard!');
+      } catch (e) {
+        showToast('Failed to copy');
+      }
+    }
+  });
+
+  // Theme Toggle (Dark Mode / Light Mode)
+  const themeToggle = document.getElementById('themeToggle');
+  const themeIcon = document.getElementById('themeIcon');
+  const themeText = document.getElementById('themeText');
+
+  const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+  const moonIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+
+  function applyTheme(isDark) {
+    if (isDark) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      if (themeIcon) themeIcon.innerHTML = sunIcon;
+      if (themeText) themeText.textContent = 'Light';
+      localStorage.setItem('affordability_theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      if (themeIcon) themeIcon.innerHTML = moonIcon;
+      if (themeText) themeText.textContent = 'Dark';
+      localStorage.setItem('affordability_theme', 'light');
+    }
+  }
+
+  // Load saved theme or system preference
+  const savedTheme = localStorage.getItem('affordability_theme');
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(savedTheme === 'dark' || (!savedTheme && prefersDark));
+
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      const isCurrentlyDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      applyTheme(!isCurrentlyDark);
+    });
+  }
+
+  // Initial load
+  renderRGItems();
+  calculate();
+  updateEmailBreakdown();
+</script>
+
+</body>
+</html>
